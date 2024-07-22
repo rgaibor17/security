@@ -12,12 +12,20 @@ var models = initModels( sequelize );
 /* GET users listing. */
 /* 1.2 Convierta el callback en asíncrono */
 router.get('/', async function(req, res, next) {
-
+  
   /* 1.3 Uso del método findAll */
-  let usersCollection = await models.users.findAll({ })
+  let usersCollection = await models.users.findAll({ 
+    /* 3.1. Including everything */
+    include: { all: true, nested: true },
+            
+    /* 3.2. Raw Queries */
+    raw: true,
+    nest: true,
+   })
+  let rolesCollection = await models.roles.findAll({ })
 
   /* 1.4 Paso de parámetros a la vista */
-  res.render('crud', { title: 'CRUD with users', usersArray: usersCollection });
+  res.render('crud', { title: 'CRUD with users', usersArray: usersCollection, rolesArray: rolesCollection});
 });
 
 /* POST user. */
@@ -36,6 +44,9 @@ router.post('/', async (req, res) => {
 
     /* 2.5 Guarde el registro mediante el método create */
     let user = await models.users.create({ name: name, password: passwordHash })
+
+    /* 5.1. Utilice el model.user_roles para crear la relación ( user.iduser , idrole) */
+    await models.users_roles.create({ users_iduser: user.iduser, roles_idrole: idrole })
 
     /* 2.6 Redireccione a la ruta con la vista principal '/users' */
     res.redirect('/users')
