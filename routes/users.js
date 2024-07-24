@@ -9,6 +9,29 @@ const sequelize = require('../models/index.js').sequelize;
 var initModels = require("../models/init-models");
 var models = initModels( sequelize );
 
+router.get('/', async function(req, res, next) {
+  res.render('login');
+
+  let { name, password, idrole } = req.body;
+  
+  let salt = process.env.SALT
+  let hash = crypto.createHmac('sha512', salt).update(password).digest("base64");
+  let passwordHash = salt + "$" + hash
+
+  await models.users.findOne({  
+    where: { 
+      [Op.and]: [
+        {id: name},
+        {password: passwordHash}
+      ]
+    }
+    })
+    .then(users => {  
+      res.redirect('/users')
+    })  
+    .catch(error => res.redirect('/'))
+});
+
 /* GET users listing. */
 /* 1.2 Convierta el callback en asíncrono */
 router.get('/', async function(req, res, next) {
